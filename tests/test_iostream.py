@@ -240,6 +240,7 @@ def test_threading():
         # if a thread segfaults, we don't get here
         assert True
 
+
 def test_nested(capsys):
     with m.ostream_redirect():
         m.noisy_function(msg="1", flush=False)
