@@ -239,3 +239,17 @@ def test_threading():
 
         # if a thread segfaults, we don't get here
         assert True
+
+def test_nested(capsys):
+    with m.ostream_redirect():
+        m.noisy_function(msg="1", flush=False)
+        with m.ostream_redirect():
+            m.noisy_function(msg="2", flush=False)
+            with m.ostream_redirect():
+                m.noisy_function(msg="3", flush=False)
+            m.noisy_function(msg="4", flush=False)
+        m.noisy_function(msg="5", flush=False)
+    msg = "12345"
+    stdout, stderr = capsys.readouterr()
+    assert stdout == msg
+    assert stderr == ""
