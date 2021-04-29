@@ -16,6 +16,7 @@
 #include <string>
 #include <memory>
 #include <iostream>
+#include <typeinfo>
 
 PYBIND11_NAMESPACE_BEGIN(PYBIND11_NAMESPACE)
 PYBIND11_NAMESPACE_BEGIN(detail)
@@ -112,7 +113,7 @@ PYBIND11_NAMESPACE_END(detail)
  \endrst */
 class scoped_ostream_redirect {
 protected:
-    std::streambuf *old;
+    std::streambuf *old = nullptr;
     std::ostream &costream;
     detail::pythonbuf buffer;
 
@@ -121,11 +122,14 @@ public:
             std::ostream &costream = std::cout,
             object pyostream = module_::import("sys").attr("stdout"))
         : costream(costream), buffer(pyostream) {
-        old = costream.rdbuf(&buffer);
+        auto &current = *costream.rdbuf();
+        if (typeid(current) != typeid(detail::pythonbuf))
+            old = costream.rdbuf(&buffer);
     }
 
     ~scoped_ostream_redirect() {
-        costream.rdbuf(old);
+        if (old)
+            costream.rdbuf(old);
     }
 
     scoped_ostream_redirect(const scoped_ostream_redirect &) = delete;
